@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 def get_sift_keypoints(img, resize_width=1366):
     dsize = (resize_width, int(img.shape[0] / (img.shape[1] / resize_width)))
     img = cv.resize(img, dsize)
-    gray = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
+    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     sift = cv.SIFT_create(nfeatures=1500)
     kp, des = sift.detectAndCompute(gray, None)
     return kp, des
@@ -61,12 +61,6 @@ def find_closest_image_match(img, k, method, labels, index):
     if method == 'sift':
         kp, des = get_sift_keypoints(img)
 
-    # elif method == 'orb':
-    #     kp, des = get_orb_keypoints(img)
-    #
-    # elif method == 'brief':
-    #     kp, des = get_brief_keypoints(img)
-
     else:
         return None
 
@@ -113,9 +107,8 @@ def main():
         img = cv.imread(file_path)
         buildings = []
         percentage_confidences = []
-        k = 5
         method = "sift"
-        top_list, percentage_scores = find_closest_image_match(img, k, method, labels, index)
+        top_list, percentage_scores = find_closest_image_match(img, 10, method, labels, index)
 
         # Collect results
         for i in range(len(top_list)):
