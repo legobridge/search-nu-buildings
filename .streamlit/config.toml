@@ -5,15 +5,14 @@
 primaryColor = "#ffffff" # white
 
 # Background color for the main container.
-backgroundColor = "#e8dfed" # lilac
+backgroundColor = "#000000" # lilac
 
 # Used as the background for most widgets. Examples of widgets with this background are st.sidebar,
 # st.text_input, st.date_input.
-#secondaryBackgroundColor =  "#4E2A84" #purple pride  "#726a7a" # Dark gray <-- not enough contrast
-secondaryBackgroundColor =  "#4E2A84" #purple pride  "#ff0000" # white <-- not enough contrast
+secondaryBackgroundColor =  "#4E2A84" #purple pride
 
 # Font color for the page.
-textColor = "#0a0a0a" # black
+textColor = "#ffffff" # black
 
 # Font family (serif | sans serif | mono) for the page. Will not impact code areas.
 # Default: "sans serif"

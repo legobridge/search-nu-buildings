@@ -3,9 +3,12 @@ import os
 
 import cv2 as cv
 import faiss
+import matplotlib.pyplot as plt
 import numpy as np
 import streamlit as st
-import matplotlib.pyplot as plt
+
+
+# --------------- SIFT ---------------
 
 
 def get_sift_keypoints(img, resize_width=1366):
@@ -36,6 +39,104 @@ def create_sift_database():
     return labels, features
 
 
+# --------------- ORB ---------------
+
+
+def get_orb_keypoints(img, resize_width=1366):
+    dsize = (resize_width, int(img.shape[0] / (img.shape[1] / resize_width)))
+    img = cv.resize(img, dsize)
+    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    orb = cv.ORB_create(nfeatures=1000)
+    kp = orb.detect(gray, None)
+    kp, des = orb.compute(gray, kp)
+    return kp, des
+
+
+def create_orb_database():
+    labels = []
+    features = []
+    for image_name in os.listdir('images'):
+        if '.jpeg' not in image_name and '.jpg' not in image_name:
+            continue
+        index_of_dot = image_name.find('.')
+        building_name = image_name[0:index_of_dot]
+
+        image_path = 'images/' + image_name
+        img = cv.imread(image_path)
+
+        kp, des = get_orb_keypoints(img)
+        labels += [building_name for i in range(len(kp))]
+
+        features.append(np.vstack(des))
+    return labels, features
+
+
+# --------------- BRIEF ---------------
+
+
+def get_brief_keypoints(img, resize_width=1366):
+    dsize = (resize_width, int(img.shape[0] / (img.shape[1] / resize_width)))
+    img = cv.resize(img, dsize)
+    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    star = cv.xfeatures2d.StarDetector_create()
+    kp = star.detect(gray, None)
+    brief = cv.xfeatures2d.BriefDescriptorExtractor_create()
+    kp, des = brief.compute(gray, kp)
+    return kp, des
+
+
+def create_brief_database():
+    labels = []
+    features = []
+    for image_name in os.listdir('images'):
+        if '.jpeg' not in image_name and '.jpg' not in image_name:
+            continue
+        index_of_dot = image_name.find('.')
+        building_name = image_name[0:index_of_dot]
+
+        image_path = 'images/' + image_name
+        img = cv.imread(image_path)
+
+        kp, des = get_brief_keypoints(img)
+        labels += [building_name for i in range(len(kp))]
+
+        features.append(np.vstack(des))
+    return labels, features
+
+
+# --------------- CNN ---------------
+
+
+def get_cnn_keypoints(img, resize_width=1366):
+    dsize = (resize_width, int(img.shape[0] / (img.shape[1] / resize_width)))
+    img = cv.resize(img, dsize)
+    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    star = cv.xfeatures2d.StarDetector_create()
+    kp = star.detect(gray, None)
+    brief = cv.xfeatures2d.BriefDescriptorExtractor_create()
+    kp, des = brief.compute(gray, kp)
+    return kp, des
+
+
+def create_cnn_database():
+    labels = []
+    features = []
+    for image_name in os.listdir('images'):
+        if '.jpeg' not in image_name and '.jpg' not in image_name:
+            continue
+        index_of_dot = image_name.find('.')
+        building_name = image_name[0:index_of_dot]
+
+        image_path = 'images/' + image_name
+        img = cv.imread(image_path)
+
+        kp, des = get_brief_keypoints(img)
+        labels += [building_name for i in range(len(kp))]
+
+        features.append(np.vstack(des))
+    return labels, features
+
+
 def create_requested_feature_database(create_database):
     labels, features = create_database()
     features_ar = np.vstack(features)
@@ -58,11 +159,16 @@ def get_percentage_scores(top_tuple_list, softmax_temp=50):
 
 
 def find_closest_image_match(img, k, method, labels, index):
-    if method == 'sift':
+    if method == 'SIFT':
         kp, des = get_sift_keypoints(img)
-
+    elif method == 'ORB':
+        kp, des = get_orb_keypoints(img)
+    elif method == 'BRIEF':
+        kp, des = get_brief_keypoints(img)
+    elif method == 'CNN':
+        kp, des = get_cnn_keypoints(img)
     else:
-        return None
+        raise NotImplemented()
 
     preds = {}
     for d in des:
@@ -79,14 +185,40 @@ def find_closest_image_match(img, k, method, labels, index):
     return top_list, percentage_scores
 
 
+def display_results(buildings, img, percentage_confidences, top_list):
+    st.subheader("Results")
+    st.image(cv.cvtColor(img, cv.COLOR_BGR2RGB), width=480, caption=f'This looks like {top_list[0]} (we hope)')
+    top_k = 5
+    st.subheader(f"Top {top_k} Image Matches")
+    y_pos = np.arange(top_k)
+    fig, ax = plt.subplots()
+    ax.barh(y_pos, percentage_confidences[:top_k], align='center')
+    ax.set_yticks(y_pos, labels=buildings[:top_k])
+    ax.invert_yaxis()
+    ax.set_xlabel('Confidence (%)')
+    st.pyplot(fig)
+
+
 def main():
     # Set page title and layout
     st.set_page_config(page_title="Image Matching App", layout="wide")
     st.title('Northwestern University Buildings')
     st.subheader('Search by Image')
 
-    # Create database
-    labels, index = create_requested_feature_database(create_sift_database)
+    method = st.radio('Select Feature-Extraction Algorithm to use:',
+                      options=['SIFT', 'ORB', 'BRIEF', 'CNN'])
+
+    # Create feature database
+    if method == 'SIFT':
+        labels, index = create_requested_feature_database(create_sift_database)
+    elif method == 'ORB':
+        labels, index = create_requested_feature_database(create_orb_database)
+    elif method == 'BRIEF':
+        labels, index = create_requested_feature_database(create_brief_database)
+    elif method == 'CNN':
+        labels, index = create_requested_feature_database(create_cnn_database)
+    else:
+        raise NotImplemented()
 
     # Upload image file
     uploaded_file = st.file_uploader("Upload Image of an NU Building")
@@ -107,7 +239,6 @@ def main():
         img = cv.imread(file_path)
         buildings = []
         percentage_confidences = []
-        method = "sift"
         top_list, percentage_scores = find_closest_image_match(img, 10, method, labels, index)
 
         # Collect results
@@ -118,17 +249,7 @@ def main():
             percentage_confidences.append(float(f'{percentage_score:.2f}'))
 
         # Display results
-        st.subheader("Results")
-        st.image(cv.cvtColor(img, cv.COLOR_BGR2RGB), width=480, caption=f'This looks like {top_list[0]} (we hope)')
-        top_k = 5
-        st.subheader(f"Top {top_k} Image Matches")
-        y_pos = np.arange(top_k)
-        fig, ax = plt.subplots()
-        ax.barh(y_pos, percentage_confidences[:top_k], align='center')
-        ax.set_yticks(y_pos, labels=buildings[:top_k])
-        ax.invert_yaxis()
-        ax.set_xlabel('Confidence (%)')
-        st.pyplot(fig)
+        display_results(buildings, img, percentage_confidences, top_list)
 
 
 if __name__ == "__main__":
