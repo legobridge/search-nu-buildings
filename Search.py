@@ -4,7 +4,6 @@ import os
 import cv2 as cv
 import faiss
 import numpy as np
-import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 
@@ -13,7 +12,7 @@ def get_sift_keypoints(img, resize_width=1366):
     gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     dsize = (resize_width, int(gray.shape[0] / (gray.shape[1] / resize_width)))
     gray = cv.resize(gray, dsize)
-    sift = cv.SIFT_create(nfeatures=1000)
+    sift = cv.SIFT_create(nfeatures=2000)
     kp, des = sift.detectAndCompute(gray, None)
     return kp, des
 
