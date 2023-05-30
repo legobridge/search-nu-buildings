@@ -9,10 +9,10 @@ import matplotlib.pyplot as plt
 
 
 def get_sift_keypoints(img, resize_width=1366):
-    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    dsize = (resize_width, int(gray.shape[0] / (gray.shape[1] / resize_width)))
-    gray = cv.resize(gray, dsize)
-    sift = cv.SIFT_create(nfeatures=2000)
+    dsize = (resize_width, int(img.shape[0] / (img.shape[1] / resize_width)))
+    img = cv.resize(img, dsize)
+    gray = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
+    sift = cv.SIFT_create(nfeatures=1500)
     kp, des = sift.detectAndCompute(gray, None)
     return kp, des
 
@@ -24,7 +24,7 @@ def create_sift_database():
         if '.jpeg' not in image_name and '.jpg' not in image_name:
             continue
         index_of_dot = image_name.find('.')
-        building_name = image_name[0:(index_of_dot - 2)]
+        building_name = image_name[0:index_of_dot]
 
         image_path = 'images/' + image_name
         img = cv.imread(image_path)
@@ -85,42 +85,17 @@ def find_closest_image_match(img, k, method, labels, index):
     return top_list, percentage_scores
 
 
-# def main():
-#     labels, index = create_requested_feature_database(create_sift_database)
-#     uploaded_file = st.file_uploader("Upload an image file")
-#     uploaded_files_dir = 'uploaded_files'
-#     if not os.path.exists(uploaded_files_dir):
-#         os.mkdir(uploaded_files_dir)
-#     if uploaded_file is not None:
-#         file_path = f'{uploaded_files_dir}/{uploaded_file.name}'
-#         with open(file_path, 'wb') as f:
-#             f.write(uploaded_file.read())
-#         img = cv.imread(file_path)
-#         buildings = []
-#         percentage_confidences = []
-#         k = 5
-#         method = "sift"
-#         top_list, percentage_scores = find_closest_image_match(img, k, method, labels, index)
-#         for i in range(len(top_list)):
-#             name = top_list[i]
-#             percentage_score = percentage_scores[i]
-#             buildings.append(name)
-#             percentage_confidences.append(f'{percentage_score:.2f}')
-
-#         df = pd.DataFrame({'building': buildings, 'percentage_confidence': percentage_confidences})
-#         df.iloc[:5]
-
-
 def main():
     # Set page title and layout
     st.set_page_config(page_title="Image Matching App", layout="wide")
-    st.title('NORTHWESTERN IMAGE MATCHING APP')
+    st.title('Northwestern University Buildings')
+    st.subheader('Search by Image')
 
     # Create database
     labels, index = create_requested_feature_database(create_sift_database)
 
     # Upload image file
-    uploaded_file = st.file_uploader("Upload image file")
+    uploaded_file = st.file_uploader("Upload Image of an NU Building")
 
     # Create uploaded files directory if it doesn't exist
     uploaded_files_dir = 'uploaded_files'
@@ -150,6 +125,8 @@ def main():
             percentage_confidences.append(float(f'{percentage_score:.2f}'))
 
         # Display results
+        st.subheader("Results")
+        st.image(cv.cvtColor(img, cv.COLOR_BGR2RGB), width=480, caption=f'This looks like {top_list[0]} (we hope)')
         top_k = 5
         st.subheader(f"Top {top_k} Image Matches")
         y_pos = np.arange(top_k)
@@ -159,8 +136,6 @@ def main():
         ax.invert_yaxis()
         ax.set_xlabel('Confidence (%)')
         st.pyplot(fig)
-        st.subheader("Uploaded Image")
-        st.image(img, use_column_width=True)
 
 
 if __name__ == "__main__":
