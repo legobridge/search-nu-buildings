@@ -5,6 +5,7 @@ import cv2 as cv
 import faiss
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import streamlit as st
 
 
@@ -186,8 +187,17 @@ def find_closest_image_match(img, k, method, labels, index):
 
 
 def display_results(buildings, img, percentage_confidences, top_list):
+    # Primary Results
     st.subheader("Results")
-    st.image(cv.cvtColor(img, cv.COLOR_BGR2RGB), width=480, caption=f'This looks like {top_list[0]} (we hope)')
+    predicted_building = top_list[0]
+    st.image(cv.cvtColor(img, cv.COLOR_BGR2RGB), width=480, caption=f'This looks like {predicted_building} (we hope)')
+
+    # Details about the building
+    details_df = pd.read_csv('database.csv', index_col='Name')
+    st.markdown('**Address:** ' + details_df.loc[predicted_building].Address)
+    st.markdown('**Google Maps Link:** ' + details_df.loc[predicted_building].Link)
+
+    # Probability Distribution
     top_k = 5
     st.subheader(f"Top {top_k} Image Matches")
     y_pos = np.arange(top_k)
