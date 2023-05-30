@@ -8,7 +8,7 @@ import pandas as pd
 import streamlit as st
 
 
-def get_sift_keypoints(img, resize_width=1024):
+def get_sift_keypoints(img, resize_width=1366):
     gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     dsize = (resize_width, int(gray.shape[0] / (gray.shape[1] / resize_width)))
     gray = cv.resize(gray, dsize)
