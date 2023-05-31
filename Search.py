@@ -105,39 +105,6 @@ def create_brief_database():
     return labels, features
 
 
-# --------------- CNN ---------------
-
-
-def get_cnn_keypoints(img, resize_width=1366):
-    dsize = (resize_width, int(img.shape[0] / (img.shape[1] / resize_width)))
-    img = cv.resize(img, dsize)
-    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    star = cv.xfeatures2d.StarDetector_create()
-    kp = star.detect(gray, None)
-    brief = cv.xfeatures2d.BriefDescriptorExtractor_create()
-    kp, des = brief.compute(gray, kp)
-    return kp, des
-
-
-def create_cnn_database():
-    labels = []
-    features = []
-    for image_name in os.listdir('images'):
-        if '.jpeg' not in image_name and '.jpg' not in image_name:
-            continue
-        index_of_dot = image_name.find('.')
-        building_name = image_name[0:index_of_dot]
-
-        image_path = 'images/' + image_name
-        img = cv.imread(image_path)
-
-        kp, des = get_brief_keypoints(img)
-        labels += [building_name for i in range(len(kp))]
-
-        features.append(np.vstack(des))
-    return labels, features
-
-
 def create_requested_feature_database(create_database):
     labels, features = create_database()
     features_ar = np.vstack(features)
@@ -216,7 +183,7 @@ def main():
     st.subheader('Search by Image')
 
     method = st.radio('Select Feature-Extraction Algorithm to use:',
-                      options=['SIFT', 'ORB', 'BRIEF', 'CNN'])
+                      options=['SIFT', 'ORB', 'BRIEF'])
 
     # Create feature database
     if method == 'SIFT':
@@ -225,8 +192,6 @@ def main():
         labels, index = create_requested_feature_database(create_orb_database)
     elif method == 'BRIEF':
         labels, index = create_requested_feature_database(create_brief_database)
-    elif method == 'CNN':
-        labels, index = create_requested_feature_database(create_cnn_database)
     else:
         raise NotImplemented()
 
