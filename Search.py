@@ -157,10 +157,18 @@ def display_results(buildings, img, percentage_confidences, top_list):
     if percentage_confidences[0] >= 50:
         # We probably found it
         predicted_building = top_list[0]
-        st.image(cv.cvtColor(img, cv.COLOR_BGR2RGB), width=480, caption=f'This looks like {predicted_building} (we hope)')
 
-        # Details about the building
+        # Show images
+        col1, col2 = st.columns([2, 2])
+        img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
+        with col1:
+            st.image(img, width=360, caption='Uploaded Image', use_column_width='never')
+        with col2:
+            st.image(f'images/{predicted_building}.jpg', width=360, caption='Database Image', use_column_width='never')
+
+        # Output details about the building
         details_df = pd.read_csv('database.csv', index_col='Name')
+        st.markdown(f'This looks like **{predicted_building}** (we hope)')
         st.markdown('**Address:** ' + details_df.loc[predicted_building].Address)
         st.markdown('**Google Maps Link:** ' + details_df.loc[predicted_building].Link)
     else:
