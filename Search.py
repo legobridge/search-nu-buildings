@@ -171,6 +171,7 @@ def display_results(buildings, img, percentage_confidences, top_list):
         st.markdown(f'This looks like **{predicted_building}** (we hope)')
         st.markdown('**Address:** ' + details_df.loc[predicted_building].Address)
         st.markdown('**Google Maps Link:** ' + details_df.loc[predicted_building].Link)
+        st.markdown('**Description:** ' + details_df.loc[predicted_building].Description)
     else:
         # We probably didn't find it
         st.markdown("**Hmm, we're not quite sure what this is...**")
