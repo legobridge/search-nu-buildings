@@ -114,7 +114,7 @@ def create_requested_feature_database(create_database):
     return labels, index
 
 
-def get_percentage_scores(top_tuple_list, softmax_temp=50):
+def get_percentage_scores(top_tuple_list, softmax_temp=25):
     # Softmax calculation
     top_list = []
     sum_of_scores = 0
